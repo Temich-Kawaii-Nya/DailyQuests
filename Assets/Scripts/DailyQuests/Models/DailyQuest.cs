@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 
 namespace DailyQuests
@@ -8,6 +9,7 @@ namespace DailyQuests
         public string Name { get; set; }
         public string Description { get; set; }
         public float Progress { get; set; }
-        public List<QuestCondition> Conditions { get; set; }
+        public Dictionary<Type, List<IQuestCondition>> Conditions { get; set; }
     }
+
 }

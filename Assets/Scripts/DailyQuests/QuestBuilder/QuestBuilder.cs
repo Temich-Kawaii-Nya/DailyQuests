@@ -21,9 +21,11 @@ namespace DailyQuests.Core
         {
             DailyQuest.Progress = progress;
         }
-        public void BuildCondition(QuestCondition condition)
+        public void BuildCondition(IQuestCondition condition)
         {
-            DailyQuest.Conditions.Add(condition);
+            if (!DailyQuest.Conditions.ContainsKey(condition.GetType()))
+                DailyQuest.Conditions.Add(condition.GetType(), new());
+            DailyQuest.Conditions[condition.GetType()].Add(condition);
         }
         public DailyQuest BuildQuest()
         {

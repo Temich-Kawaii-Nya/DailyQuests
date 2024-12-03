@@ -1,15 +1,17 @@
 ﻿using System;
+using Unity.Plastic.Newtonsoft.Json;
 
 namespace DailyQuests
 {
-    public class CollectItemsCondition : QuestCondition
-    {
-        public Type ConditionType => GetType();
+    [Serializable]
+    public class CollectItemsCondition : IQuestCondition
+    {     
+        public Type ConditionType { get { return GetType(); } }
 
         public bool IsComplited { get => _targetCount == _currentCount; }
-
+        [JsonProperty]
         private int _targetCount;
-
+        [JsonProperty]
         private int _currentCount;
 
         public void AddCount(int amount)
@@ -23,12 +25,12 @@ namespace DailyQuests
                 _currentCount += amount;
             }
         }
-
     }
-    public class KillEnemyCondition : QuestCondition
+    [Serializable]
+    public class KillEnemyCondition : IQuestCondition
     {
-        public Type ConditionType => throw new NotImplementedException();
+        public Type ConditionType { get; }
 
-        public bool IsComplited => throw new NotImplementedException();
+        public bool IsComplited { get; set; }
     }
 }
