@@ -4,7 +4,6 @@ using UnityEditor;
 using UnityEditorInternal;
 using UnityEngine;
 using Unity.Plastic.Newtonsoft.Json;
-
 namespace DailyQuests.Core.Editor
 {
     internal class QuestBuilderEditor : EditorWindow
@@ -15,6 +14,8 @@ namespace DailyQuests.Core.Editor
         private string _questProgress = string.Empty;
         private bool _createNewQuest = false;
         private bool _showConditionPopup = false;
+
+        private IRepository _repository;
 
         private DailyQuest _editingQuest;
 
@@ -34,8 +35,31 @@ namespace DailyQuests.Core.Editor
         {
             GetWindow<QuestBuilderEditor>("Quest Builder");
         }
+        private void UpdateList(List<DailyQuest> newList)
+        {
+            UnityEditorMainThreadDispatcher.Enqueue(() => {
+                if (newList == null || newList.Count == 0)
+                {
+                    _dailyQuests.Clear();
+                    _questList.list = _dailyQuests;
+                    _expendList.Clear();
+                    Repaint();
+                    return;
+                }
 
-        public void Awake()
+                _dailyQuests = newList;
+                _questList.list = _dailyQuests;
+                _expendList = new List<bool>(_dailyQuests.Count);
+
+                for (int i = 0; i < _dailyQuests.Count; i++)
+                {
+                    _expendList.Add(false);
+                }
+
+                Repaint(); 
+            });
+        }
+        public async void Awake()
         {
             _conditionFinder = new ConditionFinder();
             _questBuilder = new QuestBuilder();
@@ -45,6 +69,7 @@ namespace DailyQuests.Core.Editor
             _dailyQuests = new List<DailyQuest>();
             _conditionFinder.Find();
 
+            _repository = new PlayerPrefsRepository(); // TODO FROM CONFIG
 
             int selectedIndex = 0;
             _questList = new ReorderableList(_dailyQuests, typeof(DailyQuest), true, true, false, true)
@@ -105,12 +130,19 @@ namespace DailyQuests.Core.Editor
 
                     _expendList[oldIndex] = secondOld;
                     _expendList[newIndex] = firstOld;
+
+                    _repository.SaveDailyQuests(_dailyQuests);
                 },
                 onRemoveCallback = list =>
                 {
                     _expendList.RemoveAt(list.index);
+                    _repository.SaveDailyQuests(_dailyQuests);
                 }
             };
+            await _repository.GetDailyQuests(list =>
+            {
+                UpdateList(list);
+            });
         }
 
         private void OnGUI()
@@ -231,6 +263,9 @@ namespace DailyQuests.Core.Editor
                     var newQuest = _questBuilder.BuildQuest();
                     _dailyQuests.Add(newQuest);
                     _expendList.Add(false);
+
+                    _repository.SaveDailyQuests(_dailyQuests);
+
                     Debug.Log(JsonConvert.SerializeObject(newQuest));
                 }
                 else
@@ -239,6 +274,8 @@ namespace DailyQuests.Core.Editor
                     _editingQuest.Description = _questDescription;
                     _editingQuest.Progress = float.Parse(_questProgress);
                     _editingQuest = null;
+
+                    _repository.SaveDailyQuests(_dailyQuests);
                 }
 
                 _questName = string.Empty;
@@ -248,7 +285,6 @@ namespace DailyQuests.Core.Editor
                 _createNewQuest = false;
             }
         }
-
         private void LoadQuestForEditing(DailyQuest quest)
         {
             _questName = quest.Name;

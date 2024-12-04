@@ -3,6 +3,7 @@ using System.Collections.Generic;
 
 namespace DailyQuests
 {
+    [Serializable]
     public class DefaultDailyQuest : DailyQuest
     {
         public int Id { get; set; }
