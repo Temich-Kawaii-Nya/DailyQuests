@@ -71,7 +71,7 @@ namespace DailyQuests.Feature.Core.Editor
             _dailyQuests = new List<IDailyQuest>();
             _conditionFinder.Find();
 
-            _repository = new PlayerPrefsRepository(); // TODO FROM CONFIG
+            _repository = new ServerRepository(new DailyQuestsConfig()); // TODO FROM CONFIG
 
             int selectedIndex = 0;
             _questList = new ReorderableList(_dailyQuests, typeof(IDailyQuest), true, true, false, true)
@@ -268,7 +268,13 @@ namespace DailyQuests.Feature.Core.Editor
 
                     _repository.SaveDailyQuests(_dailyQuests);
 
-                    Debug.Log(JsonConvert.SerializeObject(newQuest));
+                    var settings = new JsonSerializerSettings
+                    {
+                        TypeNameHandling = TypeNameHandling.Auto
+                    };
+                    string serializedQuests = JsonConvert.SerializeObject(_dailyQuests, settings);
+
+                    Debug.Log(serializedQuests);
                 }
                 else
                 {

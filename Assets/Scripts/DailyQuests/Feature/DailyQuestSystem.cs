@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using UnityEngine;
+using static System.Net.WebRequestMethods;
 
 namespace DailyQuests
 {
@@ -89,7 +90,7 @@ namespace DailyQuests
                 case RepositoryType.PlayerPrefs:
                     return new PlayerPrefsRepository();
                 case RepositoryType.Server:
-                    return new PlayerPrefsRepository();
+                    return new ServerRepository(_config);
                 case RepositoryType.JsonFile:
                     return new PlayerPrefsRepository();
                 default:
@@ -99,7 +100,9 @@ namespace DailyQuests
     }
     public class DailyQuestsConfig
     {
-        public RepositoryType RepositoryType { get; private set; } = RepositoryType.PlayerPrefs;
+        public RepositoryType RepositoryType { get; private set; } = RepositoryType.Server;
+        public string ServerUrl { get; private set; } = "http://localhost:8080";
+        public string GetQuestEndPoint { get; private set; } = "/quests";
     }
     public enum RepositoryType
     {
