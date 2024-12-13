@@ -1,11 +1,9 @@
 using GameCore.EventBus.Messaging;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics.Tracing;
 using System.Threading.Tasks;
-using UnityEngine;
 
-namespace GameCore.EventBus 
+namespace GameCore.EventBus
 {
     public class EventBus
     {
@@ -45,7 +43,9 @@ namespace GameCore.EventBus
             _eventReceivers[eventType].Remove(reference);
             _referencesHash.Remove(hash);
         }
-        public void RegisterRequestHandler<TRequest, TResponse>(IRequestHandler<TRequest, TResponse> handler) where TRequest : IRequest
+        public void RegisterRequestHandler<TRequest, TResponse>(IRequestHandler<TRequest, TResponse> handler) 
+            where TRequest : IRequest
+            where TResponse : IResponse
         {
             var type = typeof(TRequest);
 
@@ -56,7 +56,9 @@ namespace GameCore.EventBus
             _requestReceivers[type].Add(reference);
             _requestRefsHash[handler.GetHashCode()] = reference;
         }
-        public void UnregisterRequestHandler<TRequest, TResponse>(IRequestHandler<TRequest, TResponse> handler) where TRequest : IRequest
+        public void UnregisterRequestHandler<TRequest, TResponse>(IRequestHandler<TRequest, TResponse> handler) 
+            where TRequest : IRequest
+            where TResponse: IResponse
         {
             var type = typeof(TRequest);
             var hash = handler.GetHashCode();
@@ -68,18 +70,17 @@ namespace GameCore.EventBus
             _requestReceivers[type].Remove(reference);
             _requestRefsHash.Remove(hash);
         }
-        public Task<TResponse> SendRequest<TRequest, TResponse>(TRequest request) where TRequest : IRequest
+        public Task<TResponse> SendRequest<TRequest, TResponse>(TRequest request) 
+            where TRequest : IRequest
+            where TResponse : IResponse
         {
             var type = typeof(TRequest);
             if (_requestReceivers.ContainsKey(type))
             {
-                Debug.Log("ddS");
                 foreach (var reference in _requestReceivers[type])
                 {
-                    Debug.Log("ssS");
                     if (reference.TryGetTarget(out var handler))
                     {
-                        Debug.Log("HES");
                         return ((IRequestHandler<TRequest, TResponse>)handler).HandleAsync(request);
                     }
                 }

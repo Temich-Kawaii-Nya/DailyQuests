@@ -1,9 +1,10 @@
 using DailyQuests.Infrasructure.Contracts;
 using Rewards;
+using System;
 
 namespace DailyQuests.Feature.Core
 {
-    public class QuestBuilder
+    internal sealed class QuestBuilder
     {
         private IDailyQuest DailyQuest;
        
@@ -37,6 +38,7 @@ namespace DailyQuests.Feature.Core
         }
         public IDailyQuest BuildQuest()
         {
+            DailyQuest.Id = Guid.NewGuid();
             return DailyQuest;
         }
     }

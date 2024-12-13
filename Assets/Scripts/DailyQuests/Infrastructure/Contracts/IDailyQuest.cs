@@ -6,7 +6,7 @@ namespace DailyQuests.Infrasructure.Contracts
 {
     public interface IDailyQuest
     {
-        public int Id { get; set; }
+        public Guid Id { get; set; }
         public string Name { get; set; }
         public string Description { get; set; }
         public float Progress { get; set; }

@@ -7,7 +7,6 @@ namespace DailyQuests.Infrasructure.Contracts
     [Serializable]
     public class DailyQuestBase : IDailyQuest
     {
-        public int Id { get; set; }
         public string Name { get; set; }
         public string Description { get; set; }
         public float Progress { get; set; }
@@ -15,6 +14,7 @@ namespace DailyQuests.Infrasructure.Contracts
         public bool IsComplited { get; set; }
         public Dictionary<Type, List<IQuestCondition>> Conditions { get; set; } = new();
         public Dictionary<Type, List<Reward>> RewardsList { get; set; } = new();
+        public Guid Id { get; set; }
     }
 
 }

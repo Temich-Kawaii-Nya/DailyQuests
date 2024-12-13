@@ -7,7 +7,7 @@ using UnityEngine;
 
 namespace DailyQuests.Feature.Core
 {
-    public class PlayerPrefsRepository : IRepository
+    internal sealed class PlayerPrefsDataContext : IDataContext
     {
         private const string QUESTS_SAVE_KEY = "daily_quests_save_key";
         public async Task<bool> GetDailyQuests(Action<List<IDailyQuest>> callback = null)
@@ -15,7 +15,7 @@ namespace DailyQuests.Feature.Core
             return await Task.Run(() =>
             {
                 string json = null;
-                UnityEditorMainThreadDispatcher.Enqueue(() =>
+                UnityEditorMainThreadUtility.Enqueue(() =>
                 {
                     json = PlayerPrefs.GetString(QUESTS_SAVE_KEY, "[]");
                     Debug.Log(json);
@@ -48,7 +48,7 @@ namespace DailyQuests.Feature.Core
 
             await Task.Run(() =>
             {
-                UnityEditorMainThreadDispatcher.Enqueue(() =>
+                UnityEditorMainThreadUtility.Enqueue(() =>
                 {
                     PlayerPrefs.SetString(QUESTS_SAVE_KEY, serializedQuests);
                     PlayerPrefs.Save();

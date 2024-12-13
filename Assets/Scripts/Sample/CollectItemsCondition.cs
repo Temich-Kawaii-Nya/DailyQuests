@@ -25,7 +25,6 @@ using DailyQuests.Infrasructure.Contracts;
                 _currentCount += amount;
             }
         }
-
         public void UpdateCondition(QuestConditionParams par = null)
         {
             if (IsComplited)

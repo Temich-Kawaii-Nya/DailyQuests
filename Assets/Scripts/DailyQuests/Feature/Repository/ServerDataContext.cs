@@ -8,10 +8,10 @@ using UnityEngine.Networking;
 
 namespace DailyQuests.Feature.Core
 {
-    public class ServerRepository : IRepository
+    internal sealed class ServerDataContext : IDataContext
     {
         private readonly DailyQuestsConfig _cfg;
-        public ServerRepository(
+        public ServerDataContext(
             DailyQuestsConfig cfg
             ) 
         {
@@ -29,7 +29,6 @@ namespace DailyQuests.Feature.Core
                     case UnityWebRequest.Result.InProgress:
                         return false;
                     case UnityWebRequest.Result.Success:
-                        Debug.Log(request.downloadHandler.text);
                         var settings = new JsonSerializerSettings
                         {
                             TypeNameHandling = TypeNameHandling.Auto
@@ -37,6 +36,7 @@ namespace DailyQuests.Feature.Core
                         callback?.Invoke(JsonConvert.DeserializeObject<List<IDailyQuest>>(request.downloadHandler.text, settings));
                         return true;
                     case UnityWebRequest.Result.ConnectionError:
+
                         return false;
                     case UnityWebRequest.Result.ProtocolError:
                         return false;

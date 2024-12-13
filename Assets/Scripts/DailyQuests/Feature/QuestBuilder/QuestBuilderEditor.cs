@@ -8,7 +8,7 @@ using DailyQuests.Infrasructure.Contracts;
 
 namespace DailyQuests.Feature.Core.Editor
 {
-    internal class QuestBuilderEditor : EditorWindow
+    internal sealed class QuestBuilderEditor : EditorWindow
     {
         private int _conditionIndex;
         private string _questName = string.Empty;
@@ -17,7 +17,7 @@ namespace DailyQuests.Feature.Core.Editor
         private bool _createNewQuest = false;
         private bool _showConditionPopup = false;
 
-        private IRepository _repository;
+        private IDataContext _repository;
 
         private IDailyQuest _editingQuest;
 
@@ -39,7 +39,7 @@ namespace DailyQuests.Feature.Core.Editor
         }
         private void UpdateList(List<IDailyQuest> newList)
         {
-            UnityEditorMainThreadDispatcher.Enqueue(() => {
+            UnityEditorMainThreadUtility.Enqueue(() => {
                 if (newList == null || newList.Count == 0)
                 {
                     _dailyQuests.Clear();
@@ -71,7 +71,8 @@ namespace DailyQuests.Feature.Core.Editor
             _dailyQuests = new List<IDailyQuest>();
             _conditionFinder.Find();
 
-            _repository = new ServerRepository(new DailyQuestsConfig()); // TODO FROM CONFIG
+            //_repository = new ServerRepository(new DailyQuestsConfig()); // TODO FROM CONFIG
+            _repository = new PlayerPrefsDataContext();
 
             int selectedIndex = 0;
             _questList = new ReorderableList(_dailyQuests, typeof(IDailyQuest), true, true, false, true)

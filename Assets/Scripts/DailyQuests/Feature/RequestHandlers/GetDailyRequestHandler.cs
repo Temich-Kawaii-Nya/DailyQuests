@@ -1,25 +1,18 @@
 using DailyQuests.Infrasructure.Messaging;
-using DailyQuests.Infrasructure.Contracts;
 using GameCore.EventBus.Messaging;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace DailyQuests.Feature
+namespace DailyQuests.Feature.Core
 {
-    public class GetDailyRequestHandler : IRequestHandler<GetQuestsListRequest, List<IDailyQuest>>
+    internal class GetDailyRequestHandler : Handler, IRequestHandler<GetQuestsListRequest, GetAllQuestsResponse>
     {
-        private readonly DailyQuestSystem _dailyQuestSystem;
-
-        public GetDailyRequestHandler(
-            DailyQuestSystem dailyQuestSystem
-            )
+        public GetDailyRequestHandler(DailyQuestService dailyQuestService) : base(dailyQuestService)
         {
-            _dailyQuestSystem = dailyQuestSystem;   
         }
-
-        public async Task<List<IDailyQuest>> HandleAsync(GetQuestsListRequest request)
+        public async Task<GetAllQuestsResponse> HandleAsync(GetQuestsListRequest request)
         {
-            return await _dailyQuestSystem.LoadQuestsAsync();
+            var quests = await _dailyQuestService.GetAllQuests();
+            return new GetAllQuestsResponse(quests);
         }
     }
 }

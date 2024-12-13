@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace DailyQuests.Feature.Core
 {
-    public interface IRepository
+    internal interface IDataContext
     {
         Task<bool> GetDailyQuests(Action<List<IDailyQuest>> callback = null);
         Task<bool> SaveDailyQuests(List<IDailyQuest> quests);
