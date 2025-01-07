@@ -1,0 +1,17 @@
+{
+    "name": "DailyQuests.Infrasructure",
+    "rootNamespace": "DailyQuests.Infrasructure",
+    "references": [
+        "GUID:22e7105b2e6b49f4685686f64b91410b",
+        "GUID:0a243275bb92b554d8bda2e730ed6389"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
