@@ -38,12 +38,12 @@ public class NewMonoBehaviourScript : MonoBehaviour
         }
         if (Input.GetKeyDown(KeyCode.C))
         {
-            _eventBus.TriggerEvent(new UpdateQuestConditionEvent(typeof(CollectItemsCondition)));
+            _eventBus.SendEvent(new UpdateQuestConditionEvent(typeof(CollectItemsCondition)));
         }
         if (Input.GetKeyDown(KeyCode.U))
         {
             var id = _quests.First().Id;
-            _eventBus.TriggerEvent(new QuestStartEvent(id));
+            _eventBus.SendEvent(new QuestStartEvent(id));
         }
         if (Input.GetKeyDown(KeyCode.R))
         {

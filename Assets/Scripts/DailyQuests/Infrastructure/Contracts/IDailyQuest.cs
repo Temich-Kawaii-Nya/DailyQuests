@@ -15,5 +15,4 @@ namespace DailyQuests.Infrasructure.Contracts
         public Dictionary<Type, List<IQuestCondition>> Conditions { get; set; }
         public Dictionary<Type, List<Reward>> RewardsList { get; set; }
     }
-
 }

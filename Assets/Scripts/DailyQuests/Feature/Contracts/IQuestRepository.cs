@@ -68,8 +68,6 @@ namespace DailyQuests.Feature.Core
                     return new PlayerPrefsDataContext();
                 case DataContextType.Server:
                     return new ServerDataContext(_cfg);
-                case DataContextType.JsonFile:
-                    return new PlayerPrefsDataContext();
                 default:
                     return new PlayerPrefsDataContext();
             }

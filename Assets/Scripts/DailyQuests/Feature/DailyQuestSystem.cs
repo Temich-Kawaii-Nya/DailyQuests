@@ -41,10 +41,10 @@ namespace DailyQuests
         }
         private void RegisterHandlers()
         {
-            _eventBus.Register(_updateConditionHandler);
+            _eventBus.RegisterEventReceiver(_updateConditionHandler);
             _eventBus.RegisterRequestHandler(_getDailyRequestHandler);
-            _eventBus.Register<QuestStartEvent>(_questActivateHandler);
-            _eventBus.Register<QuestStopEvent>(_questActivateHandler);
+            _eventBus.RegisterEventReceiver<QuestStartEvent>(_questActivateHandler);
+            _eventBus.RegisterEventReceiver<QuestStopEvent>(_questActivateHandler);
             _eventBus.RegisterRequestHandler(_getRandomQuestHandler);
         }
         public async Task UpdateQuest(Type type) 

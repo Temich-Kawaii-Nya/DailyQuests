@@ -1,83 +1,50 @@
 using GameCore.EventBus.Messaging;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace GameCore.EventBus
 {
     public class EventBus
     {
-        private Dictionary<Type, List<WeakReference<IBaseEventReceiver>>> _eventReceivers;
-        private Dictionary<int, WeakReference<IBaseEventReceiver>> _referencesHash;
+        private readonly Dictionary<Type, List<WeakReference<IBaseEventReceiver>>> _eventReceivers = new();
+        private readonly Dictionary<int, WeakReference<IBaseEventReceiver>> _eventReceiverHash = new();
 
-        private Dictionary<Type, List<WeakReference<IBaseRequestHandler>>> _requestReceivers;
-        private Dictionary<int, WeakReference<IBaseRequestHandler>> _requestRefsHash;
-        public EventBus()
+        private readonly Dictionary<Type, List<WeakReference<IBaseRequestHandler>>> _requestHandlers = new();
+        private readonly Dictionary<int, WeakReference<IBaseRequestHandler>> _requestHandlerHash = new();
+
+        public void RegisterEventReceiver<T>(IEventReceiver<T> receiver) where T : struct, IEvent
         {
-            _eventReceivers = new Dictionary<Type, List<WeakReference<IBaseEventReceiver>>>();
-            _referencesHash = new Dictionary<int, WeakReference<IBaseEventReceiver>>();
-            _requestReceivers = new Dictionary<Type, List<WeakReference<IBaseRequestHandler>>>();
-            _requestRefsHash = new Dictionary<int, WeakReference<IBaseRequestHandler>>();
+            AddReceiver(_eventReceivers, _eventReceiverHash, typeof(T), receiver);
         }
-        public void Register<T>(IEventReceiver<T> receiver) where T : struct, IEvent
+
+        public void UnregisterEventReceiver<T>(IEventReceiver<T> receiver) where T : struct, IEvent
         {
-            Type eventType = typeof(T);
-
-            if (!_eventReceivers.ContainsKey(eventType))
-                _eventReceivers[eventType] = new List<WeakReference<IBaseEventReceiver>>();
-
-            WeakReference<IBaseEventReceiver> reference = new(receiver);
-
-            _eventReceivers[eventType].Add(reference);
-            _referencesHash[receiver.GetHashCode()] = reference;
+            RemoveReceiver(_eventReceivers, _eventReceiverHash, typeof(T), receiver);
         }
-        public void Unregister<T>(IEventReceiver<T> receiver) where T : struct, IEvent
-        {
-            Type eventType = typeof(T);
-            int hash = receiver.GetHashCode();
 
-            if (!(_eventReceivers.ContainsKey(eventType) || _referencesHash.ContainsKey(hash)))
-                return;
-
-            WeakReference<IBaseEventReceiver> reference = _referencesHash[receiver.GetHashCode()];
-            _eventReceivers[eventType].Remove(reference);
-            _referencesHash.Remove(hash);
-        }
-        public void RegisterRequestHandler<TRequest, TResponse>(IRequestHandler<TRequest, TResponse> handler) 
+        public void RegisterRequestHandler<TRequest, TResponse>(IRequestHandler<TRequest, TResponse> handler)
             where TRequest : IRequest
             where TResponse : IResponse
         {
-            var type = typeof(TRequest);
-
-            if (!_requestReceivers.ContainsKey(type))
-                _requestReceivers[type] = new List<WeakReference<IBaseRequestHandler>>();
-            WeakReference<IBaseRequestHandler> reference = new(handler);
-
-            _requestReceivers[type].Add(reference);
-            _requestRefsHash[handler.GetHashCode()] = reference;
+            AddReceiver(_requestHandlers, _requestHandlerHash, typeof(TRequest), handler);
         }
-        public void UnregisterRequestHandler<TRequest, TResponse>(IRequestHandler<TRequest, TResponse> handler) 
-            where TRequest : IRequest
-            where TResponse: IResponse
-        {
-            var type = typeof(TRequest);
-            var hash = handler.GetHashCode();
 
-            if (!_requestReceivers.ContainsKey(type) || !_requestRefsHash.ContainsKey(hash))
-                return;
-            WeakReference<IBaseRequestHandler> reference = new(handler);
-
-            _requestReceivers[type].Remove(reference);
-            _requestRefsHash.Remove(hash);
-        }
-        public Task<TResponse> SendRequest<TRequest, TResponse>(TRequest request) 
+        public void UnregisterRequestHandler<TRequest, TResponse>(IRequestHandler<TRequest, TResponse> handler)
             where TRequest : IRequest
             where TResponse : IResponse
         {
-            var type = typeof(TRequest);
-            if (_requestReceivers.ContainsKey(type))
+            RemoveReceiver(_requestHandlers, _requestHandlerHash, typeof(TRequest), handler);
+        }
+
+        public Task<TResponse> SendRequest<TRequest, TResponse>(TRequest request)
+            where TRequest : IRequest
+            where TResponse : IResponse
+        {
+            if (_requestHandlers.TryGetValue(typeof(TRequest), out var handlers))
             {
-                foreach (var reference in _requestReceivers[type])
+                foreach (var reference in handlers)
                 {
                     if (reference.TryGetTarget(out var handler))
                     {
@@ -87,21 +54,52 @@ namespace GameCore.EventBus
             }
             return Task.FromResult(default(TResponse));
         }
-        public void TriggerEvent<T>(T eventMessage) where T : struct, IEvent
+        public void SendEvent<T>(T eventMessage) where T : struct, IEvent
         {
-            Type eventType = typeof(T);
-
-            if (!_eventReceivers.ContainsKey(eventType))
-                return;
-
-            foreach (var reference in _eventReceivers[eventType])
+            if (_eventReceivers.TryGetValue(typeof(T), out var receivers))
             {
-                if (reference.TryGetTarget(out IBaseEventReceiver receiver))
+                foreach (var reference in receivers)
                 {
-                    ((IEventReceiver<T>)receiver).OnEvent(eventMessage);
+                    if (reference.TryGetTarget(out var receiver))
+                    {
+                        ((IEventReceiver<T>)receiver).OnEvent(eventMessage);
+                    }
+                }
+            }
+        }
+        private void AddReceiver<T>(
+            Dictionary<Type, List<WeakReference<T>>> receiverDict,
+            Dictionary<int, WeakReference<T>> hashDict,
+            Type keyType,
+            T receiver) where T : class
+        {
+            if (!receiverDict.TryGetValue(keyType, out var receivers))
+            {
+                receivers = new List<WeakReference<T>>();
+                receiverDict[keyType] = receivers;
+            }
+
+            var weakReference = new WeakReference<T>(receiver);
+            receivers.Add(weakReference);
+            hashDict[receiver.GetHashCode()] = weakReference;
+        }
+
+        private void RemoveReceiver<T>(
+            Dictionary<Type, List<WeakReference<T>>> receiverDict,
+            Dictionary<int, WeakReference<T>> hashDict,
+            Type keyType,
+            T receiver) where T : class
+        {
+            if (receiverDict.TryGetValue(keyType, out var receivers) && hashDict.TryGetValue(receiver.GetHashCode(), out var weakReference))
+            {
+                receivers.Remove(weakReference);
+                hashDict.Remove(receiver.GetHashCode());
+
+                if (!receivers.Any())
+                {
+                    receiverDict.Remove(keyType);
                 }
             }
         }
     }
 }
-
